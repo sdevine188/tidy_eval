@@ -82,15 +82,21 @@ starwars %>% filter((!!var_name_sym) == "Naboo")
 ##########################################
 
 
-# when creating quosure inside a function from a bare variable or string, use enquo
+# when creating quosure inside a function from a bare variable or string, use sym (or enquo)
+# bare_to_quo_in_func <- function(x, var) {
+#         var_enq <- enquo(var)
+#         print(var_enq)
+#         x %>% select(!!var_enq) %>% head(1)
+# }
+
 bare_to_quo_in_func <- function(x, var) {
-        var_enq <- enquo(var)
-        print(var_enq)
-        x %>% select(!!var_enq) %>% head(1)
+        var_sym <- sym(var)
+        print(var_sym)
+        x %>% select(!!var_sym) %>% head(1)
 }
 
 # call function with var as string or bare or symbol
-bare_to_quo_in_func(starwars, homeworld)
+# bare_to_quo_in_func(starwars, homeworld)
 bare_to_quo_in_func(starwars, "homeworld")
 
 
@@ -115,10 +121,12 @@ bare_to_quo_in_func(starwars, var_name)
 criteria1 <- parse_expr("height < 170")
 criteria2 <- parse_expr("height < 170 & mass < 70")
 criteria3 <- parse_expr("height < 170 & mass < 70 & homeworld == 'Naboo'")
+criteria4 <- parse_exprs(str_c("height < 170", "mass < 70", "homeworld == 'Naboo'", sep = ";"))
 
 starwars %>% filter(!!criteria1)
-starwars %>% filter(!! criteria2)
-starwars %>% filter(!! criteria3)
+starwars %>% filter(!!criteria2)
+starwars %>% filter(!!criteria3)
+starwars %>% filter(!!!criteria4)
 
 
 ###############################################
@@ -169,7 +177,14 @@ nse_name_in_function_using_string <- function(data, var) {
 nse_name_in_function_using_string(starwars, "homeworld")
 
 
+#############################################
 
 
+# use syms to handle multiple syms
+var1 <- "species"
+var2 <- "homeworld"
+var3 <- "skin_color"
+var_syms <- syms(c(var1, var2, var3))
+var_syms
 
-
+starwars %>% select(!!!var_syms)
