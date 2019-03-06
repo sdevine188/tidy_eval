@@ -12,11 +12,93 @@ library(rlang)
 
 head(starwars)
 
+# use vars() to pass one or more bare variable names to a function 
+# using vars() is better than using dots (see below), since you can have other arguments
+add_string_w_vars <- function(tbl, vars, string = "test") {
+        
+        tbl %>% select(!!!vars) %>% map_dfc(.x = ., .f = ~ str_c(.x, string, sep = "_"))
+}
+
+starwars %>% add_string_w_vars(vars = vars(homeworld, name))
+starwars %>% add_string_w_vars(vars = vars(homeworld, name), string = "hello")
+
+
+##################
+
+
+# use enquos on the dots to pass one or more bare variable names to a function
+# better to just use vars() instead though (see above)
+add_string_w_dots <- function(tbl, ...) {
+        
+        # convert bare variable names passed to dots into quosures
+        variable_quos <- enquos(...)
+        
+        tbl %>% select(!!!variable_quos) %>% map_dfc(.x = ., .f = ~ str_c(.x, "_test"))
+}
+
+# call add_string
+starwars %>% add_string_w_dots(name, homeworld, name)
+
+
+############################################
+
+
+# if you were so inclined, you can pass a list of bare variables
+# note that vars() function literally just passes inputs to quos()
+var_list <- list(vars(name, homeworld), vars(species))
+var_list
+
+# use vars() to pass one or more bare variable names to a function 
+# using vars() is better than using dots (see below), since you can have other arguments
+add_string_w_var_list <- function(tbl, var_list_tbl, current_origin_list, string = "test") {
+        
+        # print(current_origin_list)
+        # print(var_list_tbl %>% filter(origin_list == current_origin_list) %>% pull(value))
+        # print(var_list_tbl)
+        
+        # get current_var_list_syms
+        current_var_list_vars <- var_list_tbl %>% filter(origin_list == current_origin_list) %>% pull(value)
+        current_var_list_vars_syms <- syms(current_var_list_vars)
+
+        # add strings to selected variables
+        tbl %>% select(!!!current_var_list_vars_syms) %>% map_dfc(.x = ., .f = ~ str_c(.x, string, sep = "_"))
+}
+
+# create call_add_string_on_var_list function
+call_add_string_on_var_list <- function(tbl, var_list) {
+        
+        # get var_list_length tbl
+       var_list_length_tbl <- map(.x = var_list, .f = length) %>% enframe() %>% unnest() %>% select(value) %>% 
+                rename(var_list_length = value) %>% mutate(origin_list = row_number())
+       
+       # get var_list_tbl
+       var_list_tbl <- pmap_dfr(.l = var_list_length_tbl, 
+            .f = function(var_list_length, origin_list, ...) { 
+                    tibble(origin_list = rep(origin_list, times = var_list_length))
+                    })
+       
+       # add vars as strings to var_list_tbl
+       var_list_tbl <- map(.x = var_list %>% unlist(), .f = quo_name) %>% enframe() %>% unnest() %>% select(value) %>%
+               bind_cols(var_list_tbl, .)
+       
+       # map through each list in var_list calling add_string
+       map(.x = var_list_length_tbl %>% pull(origin_list), 
+           .f = ~ add_string_w_var_list(tbl = tbl, var_list_tbl = var_list_tbl, 
+                                        current_origin_list = .x))
+}
+
+# call call_add_string_on_var_list()
+starwars %>% call_add_string_on_var_list(var_list = list(vars(homeworld), vars(species, name)))
+
+
+############################################
+
 
 # use bare variable to create quosure
 var_quo1 <- quo(homeworld)  
 var_quo1 
 select(starwars, !!var_quo1) 
+
 
 ###########################################
 
@@ -28,10 +110,15 @@ var_sym <- sym("homeworld")
 var_sym
 select(starwars, !!var_sym)
 
-# using quo
-var_quo2 <- quo("homeworld") 
-var_quo2
-select(starwars, !!var_quo2) 
+# using quo on string
+var_name <- "homeworld" 
+var_quo <- quo(var_name)
+starwars %>% select(!!var_quo) 
+
+# using quos on string
+var_names <- c("homeworld", "mass")
+var_quos <- quos(var_names)
+starwars %>% select(!!!var_quos)
 
 
 #########################################
@@ -46,13 +133,8 @@ var_name_sym <- sym(var_name)
 var_name_sym
 select(starwars, !!var_name_sym)
 
-# this also works, but seems unnecessarily complex
-# var_name <- "homeworld"
-# var_name_sym <- sym(var_name)
-# var_name_sym 
-# var_name_quo <- quo(!!var_name_sym)
-# var_name_quo 
-# select(starwars, !!var_name_quo)
+# using quo on string
+starwars %>% select(!!quo("homeworld"))
 
 
 ##########################################
@@ -65,9 +147,9 @@ var_name_sym
 starwars %>% filter((!!var_name_sym) == "Naboo")
 
 # this doesn't work for some reason??
-# var_name_quo <- quo("homeworld")
-# var_name_quo
-# starwars %>% filter((!!var_name_quo) == "Naboo")
+var_name <- "homeworld"
+var_name_quo <- quo(var_name)
+starwars %>% filter((!!var_name_quo) == "Naboo")
 
 
 ##########################################
