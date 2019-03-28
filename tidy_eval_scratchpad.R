@@ -53,6 +53,29 @@ tabler_total_row(table = starwars, stats = "stats_here", preceding_arg = pre_exi
                  test = "var1", test2 = c("var2", "var4"), last_arg = "test3")
 
 
+##############################################################################
+
+
+# passing bare variable names to function arguments 
+tabler_total_row <- function(table, var1, var2, preceding_arg = "default", ..., last_arg) {
+        
+        dots <- list(...)
+        # return(dots)
+        var1 <- deparse(substitute(var1))
+        var2 <- deparse(substitute(var2))
+                        
+        var_syms <- syms(c(var1, var2))
+        return(starwars %>% select(!!!var_syms))
+}
+
+tabler_total_row(table = starwars, var1 = species, var2 = mass, preceding_arg = "precede",
+                 test = "var1", test2 = c("var2", "var4"), last_arg = "test3")
+
+# also works without specifying the names argument, but then it must be in order
+tabler_total_row(table = starwars, species, mass, preceding_arg = "precede",
+                 test = "var1", test2 = c("var2", "var4"), last_arg = "test3")
+
+
 ##############################################################
 
 
