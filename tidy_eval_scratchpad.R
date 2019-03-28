@@ -12,6 +12,50 @@ library(rlang)
 
 head(starwars)
 
+
+##############################################################
+
+
+# experiments with dots
+
+pre_existing_var <- "pre_exist"
+
+tabler_total_row <- function(table, stats, preceding_arg = "default", ..., last_arg) {
+        
+        dots <- list(...)
+        # return(dots)
+        return(preceding_arg)
+}
+
+# the function will look for all named arguments first
+# if it finds a specified named argument, great
+# if it finds an unspecified named argument, that gets passed to dots
+# if it finds an unnamed argument, it will pass it to the next specified named arg it hasn't filled yet
+# once it has filled all its specified named arguments, any remaining unnamed arguments are passed to dots
+tabler_total_row(table = starwars, "stats_here", "precede",
+                 test = "var1", test2 = c("var2", "var4"), last_arg = "test3")
+tabler_total_row(table = starwars, "stats_here", 
+                 test = "var1", test2 = c("var2", "var4"), last_arg = "test3", "precede")
+tabler_total_row(table = starwars, "stats_here", 
+                 test = "var1", "precede", test2 = c("var2", "var4"), last_arg = "test3")
+tabler_total_row(table = starwars, "stats_here", 
+                 test = "var1", "dot_arg", test2 = c("var2", "var4"), last_arg = "test3", "precede")
+tabler_total_row(table = starwars, "stats_here", 
+                 test = "var1", "dot_arg", test2 = c("var2", "var4"), last_arg = "test3", preceding_arg = "precede")
+# passing bare variable to dots doesn't work
+tabler_total_row(table = starwars, stats = "stats_here", 
+                 vars(test), last_arg = "test3", preceding_arg = "precede")
+# this works
+tabler_total_row(table = starwars, stats = "stats_here", 
+                 vars(test), last_arg = "test3", preceding_arg = "precede")
+# can pass pre_existing variables to named args
+tabler_total_row(table = starwars, stats = "stats_here", preceding_arg = pre_existing_var,
+                 test = "var1", test2 = c("var2", "var4"), last_arg = "test3")
+
+
+##############################################################
+
+
 # use vars() to pass one or more bare variable names to a function 
 # using vars() is better than using dots (see below), since you can have other arguments
 add_string_w_vars <- function(tbl, vars, string = "test") {
