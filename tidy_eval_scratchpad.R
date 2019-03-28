@@ -20,11 +20,11 @@ head(starwars)
 
 pre_existing_var <- "pre_exist"
 
-tabler_total_row <- function(table, stats, preceding_arg = "default", ..., last_arg) {
+tabler_total_row <- function(table, stats = NULL, preceding_arg = "default", ..., last_arg) {
         
         dots <- list(...)
         # return(dots)
-        return(preceding_arg)
+        return(stats)
 }
 
 # the function will look for all named arguments first
@@ -40,14 +40,12 @@ tabler_total_row(table = starwars, "stats_here",
                  test = "var1", "precede", test2 = c("var2", "var4"), last_arg = "test3")
 tabler_total_row(table = starwars, "stats_here", 
                  test = "var1", "dot_arg", test2 = c("var2", "var4"), last_arg = "test3", "precede")
+# note that when an argument is not passed a value, either named or unnamed, and it has no default, then
+# the function will error out if that argument is used in function (eg "argument 'stats' is missing, with no default")
+tabler_total_row(table = starwars, 
+                 test = "var1", test2 = c("var2", "var4"), last_arg = "test3", preceding_arg = "precede")
 tabler_total_row(table = starwars, "stats_here", 
                  test = "var1", "dot_arg", test2 = c("var2", "var4"), last_arg = "test3", preceding_arg = "precede")
-# passing bare variable to dots doesn't work
-tabler_total_row(table = starwars, stats = "stats_here", 
-                 vars(test), last_arg = "test3", preceding_arg = "precede")
-# this works
-tabler_total_row(table = starwars, stats = "stats_here", 
-                 vars(test), last_arg = "test3", preceding_arg = "precede")
 # can pass pre_existing variables to named args
 tabler_total_row(table = starwars, stats = "stats_here", preceding_arg = pre_existing_var,
                  test = "var1", test2 = c("var2", "var4"), last_arg = "test3")
@@ -59,19 +57,26 @@ tabler_total_row(table = starwars, stats = "stats_here", preceding_arg = pre_exi
 # passing bare variable names to function arguments 
 tabler_total_row <- function(table, var1, var2, preceding_arg = "default", ..., last_arg) {
         
-        dots <- list(...)
-        # return(dots)
-        var1 <- deparse(substitute(var1))
-        var2 <- deparse(substitute(var2))
-                        
-        var_syms <- syms(c(var1, var2))
-        return(starwars %>% select(!!!var_syms))
+        # dots <- list(...)
+        # dots <- deparse(substitute(...))
+        dots <- enquos(...)
+        return(dots)
+        
+        # var1 <- deparse(substitute(var1))
+        # var2 <- deparse(substitute(var2))
+        # var_syms <- syms(c(var1, var2))
+        # return(starwars %>% select(!!!var_syms))
 }
 
 tabler_total_row(table = starwars, var1 = species, var2 = mass, preceding_arg = "precede",
                  test = "var1", test2 = c("var2", "var4"), last_arg = "test3")
 
-# also works without specifying the names argument, but then it must be in order
+# can also pass multiple bare variables via dots
+tabler_total_row(table = starwars, var1 = species, preceding_arg = "precede",
+                 name, homeworld, last_arg = "test3", var2 = mass)
+
+# deparse/substitute also works without specifying the names argument, but then it must be in order
+# but deparse/substitute is more rigid than dots, which can accept any number of bare variables
 tabler_total_row(table = starwars, species, mass, preceding_arg = "precede",
                  test = "var1", test2 = c("var2", "var4"), last_arg = "test3")
 
