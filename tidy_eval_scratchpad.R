@@ -150,7 +150,7 @@ call_add_string_on_var_list <- function(tbl, var_list) {
                     })
        
        # add vars as strings to var_list_tbl
-       var_list_tbl <- map(.x = var_list %>% unlist(), .f = quo_name) %>% enframe() %>% unnest() %>% select(value) %>%
+       var_list_tbl <- map(.x = var_list %>% unlist(), .f = as_name) %>% enframe() %>% unnest() %>% select(value) %>%
                bind_cols(var_list_tbl, .)
        
        # map through each list in var_list calling add_string
@@ -302,10 +302,10 @@ starwars %>% mutate(!!var_name_sym := "it worked") %>% select(name, !!var_name_s
 # var_name_sym 
 # starwars %>% mutate(!!var_name_sym := "it worked") %>% select(name, !!var_name_sym)
 
-# note you also can't pass quo_name a bare term - it needs a string; but sym works just as well for NSE names
-# var_quo_name <- quo_name(homeworld)
-# var_quo_name 
-# starwars %>% mutate(!!var_quo_name := "it worked") %>% select(name, !!var_quo_name)
+# note you also can't pass as_name a bare term - it needs a string; but sym works just as well for NSE names
+# var_as_name <- as_name(homeworld)
+# var_as_name 
+# starwars %>% mutate(!!var_as_name := "it worked") %>% select(name, !!var_as_name)
 
 
 ####################################################
