@@ -163,7 +163,9 @@ call_add_string_on_var_list <- function(tbl, var_list) {
 starwars %>% call_add_string_on_var_list(var_list = list(vars(homeworld), vars(species, name)))
 
 
-############################################
+################################################################################################3
+################################################################################################3
+################################################################################################3
 
 
 # use bare variable to create quosure
@@ -306,6 +308,13 @@ starwars %>% mutate(!!var_name_sym := "it worked") %>% select(name, !!var_name_s
 # var_as_name <- as_name(homeworld)
 # var_as_name 
 # starwars %>% mutate(!!var_as_name := "it worked") %>% select(name, !!var_as_name)
+
+# not that as_name is unable to parse quosures with tidyselect helpers, but as_label can
+tidyselect_quo <- vars(starts_with("zzz"))
+tidyselect_quo
+tidyselect_quo[[1]]
+as_name(tidyselect_quo[[1]])
+as_label(tidyselect_quo[[1]])
 
 
 ####################################################
