@@ -278,11 +278,15 @@ criteria1 <- parse_expr("height < 170")
 criteria2 <- parse_expr("height < 170 & mass < 70")
 criteria3 <- parse_expr("height < 170 & mass < 70 & homeworld == 'Naboo'")
 criteria4 <- parse_exprs(str_c("height < 170", "mass < 70", "homeworld == 'Naboo'", sep = ";"))
+criteria5 <- map(.x = c("mass", "height"), 
+                 .f = ~ str_glue("is.na({.x})") %>% as.character()) %>% 
+        unlist() %>% str_c(., collapse = " | ") %>% parse_exprs()
 
 starwars %>% filter(!!criteria1)
 starwars %>% filter(!!criteria2)
 starwars %>% filter(!!criteria3)
 starwars %>% filter(!!!criteria4)
+starwars %>% filter(!!!criteria5)
 
 
 ###############################################
